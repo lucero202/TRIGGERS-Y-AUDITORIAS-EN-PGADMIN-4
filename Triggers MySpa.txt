@@ -1,0 +1,99 @@
+﻿
+---CREACIÓN DE TRIGGERS----
+---1. TRIGGER---
+create  or replace function b_cliente() returns trigger as
+$$
+begin 
+if(new.cod_cliente = null ) then 
+raise exception 'el código del cliente no puede estar vacío';
+end if;
+if(exists( select * from CLIENTE where cod_cliente  = new.cod_cliente)) then
+raise exception 'el cliente ya se encuentra registrado';
+end if; 
+return new;
+end;
+
+$$
+language 'plpgsql';
+
+create  trigger trigger_insert before insert on CLIENTE
+for each row 
+execute procedure b_cliente ();
+
+
+
+----2.TRIGGER---
+
+create  or replace function b_reserva() returns trigger as
+$$
+begin 
+if(new.cod_reserva = null ) then 
+raise exception 'el código de la reserva no puede estar vacío';
+end if;
+
+if( exists( select * from RESERVA where cod_reserva  = new.cod_reserva)) then
+raise exception 'la reserva ya se encuentra registrado';
+end if; 
+
+if(not exists( select * from CLIENTE where cod_cliente  = new.cod_cliente)) then
+raise exception 'el cliente no esta registrado en la base de datos';
+end if; 
+
+if(not exists( select * from EMPLEADO where cod_empleado  = new.cod_empleado)) then
+raise exception 'el empleado no esta registrado en la base de datos';
+end if; 
+
+if(not exists( select * from SERVICIO where cod_servicio  = new.cod_servicio)) then
+raise exception 'el servicio no esta registrado en la base de datos';
+end if; 
+
+if(not exists( select * from SALA where cod_sala  = new.cod_sala)) then
+raise exception 'la sala  no esta registrado en la base de datos';
+end if; 
+
+
+return new;
+end;
+
+$$
+language 'plpgsql';
+
+create  trigger tri_insert_rese before insert on RESERVA
+for each row 
+execute procedure b_reserva ();
+
+---3. TRIGGER----
+
+create  or replace function b_servicio() returns trigger as
+$$
+begin 
+if(new.cod_servicio = null ) then 
+raise exception 'el código del servicio no puede estar vacío';
+end if;
+
+if( exists( select * from SERVICIO where cod_servicio  = new.cod_servicio)) then
+raise exception 'el servicio ya se encuentra registrado';
+end if; 
+
+if(new.valor_servicio <= 0 ) then 
+raise exception 'el valor  del servicio no  puede ser cero o negativo  ';
+end if;
+
+return new;
+end;
+
+$$
+language 'plpgsql';
+
+create  trigger tri_inser_servicio before insert on SERVICIO
+for each row 
+execute procedure b_servicio ();
+
+
+
+
+
+
+
+
+
